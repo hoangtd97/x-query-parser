@@ -1,8 +1,11 @@
 {
   "name": "x-query-parser",
   "description": "parse query to mongoose filter",
-  "keywords": ["query", "mongoose"],
-  "version": "1.0.0",
+  "keywords": [
+    "query",
+    "mongoose"
+  ],
+  "version": "1.0.1",
   "main": "index.js",
   "license": "MIT",
   "repository": {
@@ -10,7 +13,7 @@
     "url": "git+https://github.com/hoangtd97/x-query-parser"
   },
   "scripts": {
-    "test" : "mocha src/*.spec.js --exit"
+    "test": "mocha src/*.spec.js --exit"
   },
   "devDependencies": {
     "mocha": "^6.1.3",
