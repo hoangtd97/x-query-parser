@@ -14,7 +14,11 @@ const common_operators = [
   {
     key          : 'eq',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value }) =>  set({ it, field, assign : { $eq : value } })
+    setter       : ({ it, field, value }) =>  {
+      if (hasPermission({ it, field, values })) {
+        set({ it, field, assign : { $eq : value } })
+      }
+    }
   },
   {
     key          : 'gt',
@@ -40,15 +44,34 @@ const common_operators = [
     key          : 'in',
     applyOnTypes : ['*'],
     setter       : ({ it, field, value }) => {
-      let values = value.split(',');
-      set({ it, field, assign : { $in : values} });
+      let values = value;
+      if (typeof value === 'string') {
+        values = value.split(',');
+      }
+      if (!Array.isArray(values)) {
+        return it.errors.push({
+          code     : 'ERR_INVALID_TYPE',
+          field    : field,
+          operator : 'in',
+          type     : ['array', 'string'],
+          value    : value,
+          message  : `Operator in expect a string or array value, but received ${value}`
+        });
+      }
+
+      if (hasPermission({ it, field, values })) {
+        set({ it, field, assign : { $in : values} });
+      }
     }
   },
   {
     key          : 'nin',
     applyOnTypes : ['*'],
     setter       : ({ it, field, value }) => {
-      let values = value.split(',');
+      let values = value;
+      if (typeof value === 'string') {
+        values = value.split(',');
+      }
       set({ it, field, assign : { $nin : values} });
     }
   },
@@ -60,6 +83,31 @@ const common_operators = [
     }
   },
 ];
+
+function hasPermission({ it, field, value, values }) {
+  if (!Array.isArray(values)) {
+    values = [value];
+  }
+
+  let allowed_values = it.permission[field];
+
+  if (Array.isArray(allowed_values)) {
+    for (value of values) {
+      if (!allowed_values.includes(value)) {
+        it.errors.push({
+          code : 'ERR_NOT_PERMISSION',
+          field : field,
+          value : value,
+          message : `Can't see item has ${field} = ${value}`
+        });
+
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
 
 function set({ it, field, value, assign }) {
   if (field) {
@@ -96,7 +144,7 @@ function isAvailableField({ field, it }) {
 function checkSchemaField({ schema, field }) {
   let type = _get(schema, field, _get(schema, field.replace('.', '[0]')));
 
-  if (type.type !== undefined) {
+  if (typeof type === 'object' && type.type !== undefined) {
     type = type.type;
   }
 
@@ -207,7 +255,7 @@ const key_operator_transpliers = [
     matcher : () => true,
     setter  : ({ key, value, it }) => {
       let field = key;
-      if (isAvailableField({ field, it })) {
+      if (hasPermission({ it, field, value })) {
         set({ it, field, value });
       }
     },
@@ -250,10 +298,10 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
 
   let transpilers = custom_transpilers.concat(DEFAULT_TRANSPILERS);
 
-  return function parse(query) {
+  return function parse(query, { permission = {} }={}) {
     let errors = [];
 
-    const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias };
+    const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias, permission };
   
     Object.assign(it, { filter : {} }, defaults);
   
