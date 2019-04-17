@@ -63,7 +63,7 @@ it ('should parser query to mongoose filter successfully', () => {
     'shop_id'              : 100000001,
     'created_at_gte'       : '2019-04-01',
     'created_at_lte'       : '2019-04-30',
-    'customer.name_like' : 'hoang',
+    'customer.name_like'   : 'hoang',
     'barcode'              : 'HEO',
     'status_in'            : 'NEW,ASSIGN_EMPLOYEE',
     'keyword'              : '0968726159',
