@@ -307,7 +307,7 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
   
     transpile({ transpilers, it, query });
 
-    // final process
+    // final process --------------------------
 
     if (Array.isArray(it.required) && it.required.length > 0) {
       for (let field of it.required) {
@@ -318,6 +318,12 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
             message : `${field} is required`
           });
         }
+      }
+    }
+
+    for (let field in it.permission) {
+      if (it.filter[field] === undefined) {
+        it.filter[field] = { $in : it.permission[field] };
       }
     }
 

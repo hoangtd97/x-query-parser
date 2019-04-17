@@ -23,7 +23,6 @@ const OrderSchema = new Schema({
   private_field : { type : Number },
   order_number  : { type : String },
   location_id   : { type : Number },
-  store_id      : { type : Number },
 });
 
 const parse = Parser({
@@ -119,35 +118,65 @@ it ('should parser query to mongoose filter fail when mis required field and use
   assert.deepEqual(errors, expectedErrors);
 });
 
-it ('should return not permission error', () => {
+it ('should return not permission error with operator equal', () => {
 
   let query = {
     shop_id        : 1000001,
-    location_id_in : [10001],
-    store_id       : 10000,
+    location_id    : 2000,
   };
 
   let { errors, filter } = parse(query, { 
     permission : { 
-      location_id : [10000],
-      store_id    : [10001]
+      location_id : [1000, 3000],
     } 
   });
 
-  let expectedErrors = [
-    {
-      code    : 'ERR_NOT_PERMISSION',
-      field   : 'location_id',
-      value   : 10001,
-      message : `Can't see item has location_id = 10001`
-    },
-    {
-      code    : 'ERR_NOT_PERMISSION',
-      field   : 'store_id',
-      value   : 10000,
-      message : `Can't see item has store_id = 10000`
-    }
-  ];
+  assert.deepEqual(errors, [{
+    code    : 'ERR_NOT_PERMISSION',
+    field   : 'location_id',
+    value   : 2000,
+    message : `Can't see item has location_id = 2000`
+  }]);
 
-  assert.deepEqual(errors, expectedErrors);
+});
+
+it ('should return not permission error with operator in', () => {
+
+  let query = {
+    shop_id        : 1000001,
+    location_id_in : [1000, 2000],
+  };
+
+  let { errors, filter } = parse(query, { 
+    permission : { 
+      location_id : [1000, 3000],
+    } 
+  });
+
+  assert.deepEqual(errors, [{
+    code    : 'ERR_NOT_PERMISSION',
+    field   : 'location_id',
+    value   : 2000,
+    message : `Can't see item has location_id = 2000`
+  }]);
+
+});
+
+it ('should auto assign field has permission to filter that not exists in query', () => {
+
+  let query = {
+    shop_id        : 1000001
+  };
+
+  let { errors, filter } = parse(query, { 
+    permission : { 
+      location_id : [1000, 3000],
+    } 
+  });
+
+  assert.deepEqual(filter, {
+    shop_id : 1000001,
+    location_id : { $in : [1000, 3000] }
+  });
+
 });
