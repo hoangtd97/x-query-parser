@@ -1,0 +1,18 @@
+{
+  "name": "x-query-parser",
+  "description": "parse query to mongoose filter",
+  "keywords": ["query", "mongoose"],
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test" : "mocha src/*.spec.js --exit"
+  },
+  "devDependencies": {
+    "mocha": "^6.1.3",
+    "mongoose": "^5.5.2"
+  },
+  "dependencies": {
+    "lodash.get": "^4.4.2"
+  }
+}
