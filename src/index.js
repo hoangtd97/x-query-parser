@@ -14,10 +14,19 @@ const common_operators = [
   {
     key          : 'eq',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value }) =>  {
-      if (hasPermission({ it, field, values })) {
+    setter       : ({ it, field, value, type }) =>  {
+      value = type(value);
+      if (hasPermission({ it, field, value })) {
         set({ it, field, assign : { $eq : value } })
       }
+    }
+  },
+  {
+    key          : 'ne',
+    applyOnTypes : ['*'],
+    setter       : ({ it, field, value, type }) =>  {
+      value = type(value);
+      set({ it, field, assign : { $ne : value } })
     }
   },
   {
@@ -43,7 +52,7 @@ const common_operators = [
   {
     key          : 'in',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value }) => {
+    setter       : ({ it, field, value, type }) => {
       let values = value;
       if (typeof value === 'string') {
         values = value.split(',');
@@ -59,6 +68,8 @@ const common_operators = [
         });
       }
 
+      values = values.map(val => type(val));
+
       if (hasPermission({ it, field, values })) {
         set({ it, field, assign : { $in : values} });
       }
@@ -67,17 +78,32 @@ const common_operators = [
   {
     key          : 'nin',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value }) => {
+    setter       : ({ it, field, value, type }) => {
       let values = value;
+
       if (typeof value === 'string') {
         values = value.split(',');
       }
+
+      if (!Array.isArray(values)) {
+        return it.errors.push({
+          code     : 'ERR_INVALID_TYPE',
+          field    : field,
+          operator : 'in',
+          type     : ['array', 'string'],
+          value    : value,
+          message  : `Operator in expect a string or array value, but received ${value}`
+        });
+      }
+
+      values = values.map(val => type(val));
+
       set({ it, field, assign : { $nin : values} });
     }
   },
   {
     key          : 'like',
-    applyOnTypes : ['*'],
+    applyOnTypes : [String],
     setter       : ({ it, field, value }) => {
       set({ it, field, value : new RegExp(value, 'gi') });
     }
@@ -129,6 +155,11 @@ function set({ it, field, value, assign }) {
     }
   }
   else {
+    if (Array.isArray(it.filter.$or) && Array.isArray(assign.$or)) {
+      it.filter.$and = [it.filter.$or, assign.$or];
+      delete it.filer.$or;
+      delete it.assign.$or;
+    }
     Object.assign(it.filter, assign);
   }
 }
@@ -219,7 +250,7 @@ const pagination_transpilers = [
   }
 ];
 
-const key_operator_transpliers = [
+const key_operator_transpilers = [
   {
     matcher  : ({ key }) => common_operators.find(operator => key.endsWith('_' + operator.key)),
     setter   : ({ key, value, it }) => {
@@ -247,7 +278,7 @@ const key_operator_transpliers = [
         });
       }
 
-      operator.setter({ it, field, value });
+      operator.setter({ it, field, value, type });
     },
   },
   {
@@ -255,6 +286,7 @@ const key_operator_transpliers = [
     matcher : () => true,
     setter  : ({ key, value, it }) => {
       let field = key;
+
       if (hasPermission({ it, field, value })) {
         set({ it, field, value });
       }
@@ -262,7 +294,7 @@ const key_operator_transpliers = [
   }
 ];
 
-const DEFAULT_TRANSPILERS = [].concat(pagination_transpilers).concat(key_operator_transpliers);
+const DEFAULT_TRANSPILERS = [].concat(pagination_transpilers).concat(key_operator_transpilers);
 
 function transpile({ transpilers = DEFAULT_TRANSPILERS, query, it }) {
   for (let key in query) {
@@ -299,6 +331,7 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
   let transpilers = custom_transpilers.concat(DEFAULT_TRANSPILERS);
 
   return function parse(query, { permission = {} }={}) {
+
     let errors = [];
 
     const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias, permission };
@@ -322,8 +355,9 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
     }
 
     for (let field in it.permission) {
-      if (it.filter[field] === undefined) {
-        it.filter[field] = { $in : it.permission[field] };
+      if (it.filter[field] === undefined
+        || (typeof it.filter[field] === 'object' && (it.filter[field].$ne !== undefined || Array.isArray(it.filter[field].$nin)) && !Array.isArray(it.filter[field].$in))) {
+        set({ it, field, assign : { $in : it.permission[field] }});
       }
     }
 

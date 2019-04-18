@@ -1,9 +1,9 @@
 'use strict';
 
-const assert   = require('assert');
-const mongoose = require('mongoose');
-const Schema   = mongoose.Schema;
-const { Parser }  = require('..');
+const assert     = require('assert');
+const mongoose   = require('mongoose');
+const Schema     = mongoose.Schema;
+const { Parser } = require('..');
 
 const OrderSchema = new Schema({
   shop_id  : { type : Number },
@@ -46,19 +46,20 @@ const parse = Parser({
   }
 });
 
-it ('should parser query to mongoose filter successfully', () => {
+it ('should parse query to mongoose filter successfully', () => {
 
   let query = {
-    'shop_id'              : 100000001,
+    'shop_id'              : '100000001',
     'created_at_gte'       : '2019-04-01',
     'created_at_lte'       : '2019-04-30',
-    'customer.name_like' : 'hoang',
+    'customer.name_like'   : 'hoang',
     'barcode'              : 'HEO',
     'status_in'            : 'NEW,ASSIGN_EMPLOYEE',
+    'location_id_in'       : '1000,2000',
     'keyword'              : '0968726159',
     // pagination
-    'page'                 : 2, 
-    'limit'                : 20,
+    'page'                 : '2', 
+    'limit'                : '20',
     'sort'                 : 'created_at_asc,id_desc'
   };
 
@@ -73,6 +74,7 @@ it ('should parser query to mongoose filter successfully', () => {
     'customer.name'      : new RegExp('hoang', 'gi'),
     'line_items.barcode' : 'HEO',
     'status'             : { $in : ['NEW', 'ASSIGN_EMPLOYEE'] },
+    'location_id'        : { $in : [1000, 2000] },
     '$or' : [
       { 'order_number'   : new RegExp('0968726159', 'gi') },
       { 'customer.phone' : new RegExp('0968726159', 'gi') }
@@ -86,22 +88,23 @@ it ('should parser query to mongoose filter successfully', () => {
   assert.deepEqual(sort, { created_at : 1, id : -1 });
 });
 
-it ('should parser query to mongoose filter fail when mis required field and use wrong operator', () => {
+it ('should parse query to mongoose filter fail when mis required field and use wrong operator', () => {
 
   let query = {
     'customer.name_gte' : 'hoang',
-    private_field_gt : 10,
+    'private_field_gt'  : '10',
+    'unknown_field_lt'  : '0'
   };
 
   let { errors, filter } = parse(query);
 
   let expectedErrors = [
     {
-      code : 'ERR_WRONG_OPERATOR',
-      field : 'customer.name',
-      type : 'string',
+      code     : 'ERR_WRONG_OPERATOR',
+      field    : 'customer.name',
+      type     : 'string',
       operator : 'gte',
-      message : `Can't use operator gte on customer.name has type string`
+      message  : `Can't use operator gte on customer.name has type string`
     },
     {
       code    : 'ERR_UNAVAILABLE_FIELD',
@@ -109,8 +112,13 @@ it ('should parser query to mongoose filter fail when mis required field and use
       message : `Can't search on field private_field`
     },
     {
-      code : 'ERR_REQUIRED',
-      field : 'shop_id',
+      code    : 'ERR_INVALID_FIELD',
+      field   : 'unknown_field',
+      message : `Invalid field unknown_field`
+    },
+    {
+      code    : 'ERR_REQUIRED',
+      field   : 'shop_id',
       message : 'shop_id is required'
     }
   ];
@@ -122,7 +130,7 @@ it ('should return not permission error with operator equal', () => {
 
   let query = {
     shop_id        : 1000001,
-    location_id    : 2000,
+    location_id    : '2000',
   };
 
   let { errors, filter } = parse(query, { 
@@ -144,7 +152,7 @@ it ('should return not permission error with operator in', () => {
 
   let query = {
     shop_id        : 1000001,
-    location_id_in : [1000, 2000],
+    location_id_in : '1000,2000',
   };
 
   let { errors, filter } = parse(query, { 
@@ -179,4 +187,29 @@ it ('should auto assign field has permission to filter that not exists in query'
     location_id : { $in : [1000, 3000] }
   });
 
+});
+
+it ('should auto assign field has permission to filter when only query with operators ne, nin', () => {
+
+  let query = {
+    shop_id         : 1000001,
+    location_id_nin : '1000,2000',
+    location_id_ne  : '4000'
+
+  };
+
+  let { errors, filter } = parse(query, { 
+    permission : { 
+      location_id : [1000, 3000],
+    } 
+  });
+
+  assert.deepEqual(filter, {
+    shop_id     : 1000001,
+    location_id : { 
+      $ne  : 4000,
+      $nin : [1000, 2000],
+      $in  : [1000, 3000] 
+    }
+  });
 });
