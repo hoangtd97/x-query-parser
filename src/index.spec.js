@@ -3,7 +3,7 @@
 const assert     = require('assert');
 const mongoose   = require('mongoose');
 const Schema     = mongoose.Schema;
-const { Parser } = require('..');
+const { Parser } = require('.');
 
 const OrderSchema = new Schema({
   shop_id  : { type : Number },
