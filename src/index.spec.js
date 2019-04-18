@@ -19,6 +19,7 @@ const OrderSchema = new Schema({
     quantity : { type : Number }
   }],
   created_at    : { type : Date },
+  updated_at    : { type : Date },
   status        : { type : String },
   private_field : { type : Number },
   order_number  : { type : String },
@@ -50,8 +51,10 @@ it ('should parse query to mongoose filter successfully', () => {
 
   let query = {
     'shop_id'              : '100000001',
-    'created_at_gte'       : '2019-04-01',
-    'created_at_lte'       : '2019-04-30',
+    'created_at_gte'       : '2019-04-01T03:15:00.000Z',
+    'created_at_lte'       : '2019-04-30T03:15:00.000Z',
+    'updated_at_from_date' : '2019-04-01T03:15:00.000Z',
+    'updated_at_to_date'   : '2019-04-30T03:15:00.000Z',
     'customer.name_like'   : 'hoang',
     'barcode'              : 'HEO',
     'status_in'            : 'NEW,ASSIGN_EMPLOYEE',
@@ -69,8 +72,12 @@ it ('should parse query to mongoose filter successfully', () => {
   let expectedFilter = {
     'shop_id' : 100000001,
     'created_at' : { 
-      $gte : '2019-04-01',
-      $lte : '2019-04-30'
+      $gte : Date('2019-04-01T03:15:00.000Z'),
+      $lte : Date('2019-04-30T03:15:00.000Z')
+    },
+    'updated_at' : {
+      $gte : new Date(new Date('2019-04-01T03:15:00.000Z').setHours(0, 0, 0, 0)),
+      $lte : new Date(new Date('2019-04-30T03:15:00.000Z').setHours(23, 59, 59, 999))
     },
     'customer.name'      : new RegExp('hoang', 'gi'),
     'line_items.barcode' : 'HEO',

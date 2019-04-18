@@ -19,34 +19,51 @@ const common_operators = [
     key          : 'ne',
     query_key    : '_ne',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value, type }) =>  {
-      value = type(value);
-      set({ it, field, assign : { $ne : value } })
-    }
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $ne : type(value) } })
   },
   {
     key          : 'gt',
     query_key    : '_gt',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value }) =>  set({ it, field, assign : { $gt : value } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $gt : type(value) } })
   },
   {
     key          : 'gte',
     query_key    : '_gte',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value }) =>  set({ it, field, assign : { $gte : value } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $gte : type(value) } })
+  },
+  {
+    key          : 'from_date',
+    query_key    : '_from_date',
+    applyOnTypes : [Date],
+    setter       : ({ it, field, value, type }) =>  {
+      let date = new Date(value);
+      date.setHours(0, 0, 0, 0);
+      set({ it, field, type, assign : { $gte : date } })
+    }
   },
   {
     key          : 'lt',
     query_key    : '_lt',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value }) =>  set({ it, field, assign : { $lt : value } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $lt : type(value) } })
   },
   {
     key          : 'lte',
     query_key    : '_lte',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value }) =>  set({ it, field, assign : { $lte : value } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $lte : type(value) } })
+  },
+  {
+    key          : 'to_date',
+    query_key    : '_to_date',
+    applyOnTypes : [Date],
+    setter       : ({ it, field, value, type }) =>  {
+      let date = new Date(value);
+      date.setHours(23, 59, 59, 999);
+      set({ it, field, type, assign : { $lte : date } })
+    }
   },
   {
     key          : 'in',
@@ -106,15 +123,14 @@ const common_operators = [
     key          : 'like',
     query_key    : '_like',
     applyOnTypes : [String],
-    setter       : ({ it, field, value }) => {
-      set({ it, field, value : new RegExp(value, 'gi') });
-    }
+    setter       : ({ it, field, value }) => set({ it, field, value : new RegExp(value, 'gi') })
   },
   {
     key          : '',
     query_key    : '',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value }) => {
+    setter       : ({ it, field, value, type }) => {
+      value = type(value);
       if (hasPermission({ it, field, value })) {
         set({ it, field, value  });
       }

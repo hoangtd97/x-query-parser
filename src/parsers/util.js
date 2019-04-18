@@ -35,7 +35,7 @@ function hasPermission({ it, field, value, values }) {
   return true;
 }
 
-function set({ it, field, value, assign }) {
+function set({ it, field, value, assign, type }) {
   if (field) {
     if (isAvailableField({ field, it })) {
       if (value !== undefined) {
