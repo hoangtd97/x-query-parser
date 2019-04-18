@@ -82,6 +82,7 @@ it ('should parse query to mongoose filter successfully', () => {
     ],
   };
 
+  assert.equal(errors, null);
   assert.deepEqual(filter, expectedFilter);
   assert.deepEqual(fields, { id : 1, line_items : 1, customer : -1 });
   assert.equal(page, 2);

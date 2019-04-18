@@ -52,9 +52,11 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
     }
 
     for (let field in it.permission) {
-      if (it.filter[field] === undefined
-        || (typeof it.filter[field] === 'object' && (it.filter[field].$ne !== undefined || Array.isArray(it.filter[field].$nin)) && !Array.isArray(it.filter[field].$in))) {
-        set({ it, field, assign : { $in : it.permission[field] }});
+      if (Array.isArray(it.permission[field])) {
+        if (it.filter[field] === undefined
+          || (typeof it.filter[field] === 'object' && (it.filter[field].$ne !== undefined || Array.isArray(it.filter[field].$nin)) && !Array.isArray(it.filter[field].$in))) {
+          set({ it, field, assign : { $in : it.permission[field] }});
+        }
       }
     }
 
@@ -63,6 +65,10 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
     }
 
     // console.log('time : ', Date.now() - started_at);
+
+    if (it.errors.length <= 0) {
+      it.errors = null;
+    }
 
     return it;
   }
