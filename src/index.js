@@ -1,5 +1,7 @@
 'use strict';
 
+const _cloneDeep = require('lodash.clonedeep');
+
 const { Parsers : DEFAULT_PARSERS, util } = require('./parsers');
 
 const { set } = util;
@@ -33,7 +35,7 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
 
     const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias, permission };
   
-    Object.assign(it, { filter : {} }, defaults);
+    Object.assign(it, { filter : {} }, _cloneDeep(defaults));
   
     parseIt({ parsers, it, query });
 
