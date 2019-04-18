@@ -60,10 +60,11 @@ it ('should parse query to mongoose filter successfully', () => {
     // pagination
     'page'                 : '2', 
     'limit'                : '20',
-    'sort'                 : 'created_at_asc,id_desc'
+    'sort'                 : 'created_at_asc,id_desc',
+    'fields'               : 'id,line_items,-customer',
   };
 
-  let { errors, page, filter, skip, limit, sort } = parse(query);
+  let { errors, page, filter, fields, skip, limit, sort } = parse(query);
 
   let expectedFilter = {
     'shop_id' : 100000001,
@@ -82,6 +83,7 @@ it ('should parse query to mongoose filter successfully', () => {
   };
 
   assert.deepEqual(filter, expectedFilter);
+  assert.deepEqual(fields, { id : 1, line_items : 1, customer : -1 });
   assert.equal(page, 2);
   assert.equal(skip, 20);
   assert.equal(limit, 20);
