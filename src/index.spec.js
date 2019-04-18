@@ -24,6 +24,7 @@ const OrderSchema = new Schema({
   private_field : { type : Number },
   order_number  : { type : String },
   location_id   : { type : Number },
+  is_deleted    : { type : Boolean }
 });
 
 const parse = Parser({
@@ -38,6 +39,9 @@ const parse = Parser({
     page  : 1,
     limit : 20,
     sort  : 'created_at_asc',
+    filter : {
+      is_deleted : false
+    }
   },
   custom : {
     keyword : (value) => { return { $or : [
@@ -87,6 +91,7 @@ it ('should parse query to mongoose filter successfully', () => {
       { 'order_number'   : new RegExp('0968726159', 'gi') },
       { 'customer.phone' : new RegExp('0968726159', 'gi') }
     ],
+    'is_deleted'         : false
   };
 
   assert.equal(errors, null);
@@ -193,8 +198,9 @@ it ('should auto assign field has permission to filter that not exists in query'
   });
 
   assert.deepEqual(filter, {
-    shop_id : 1000001,
-    location_id : { $in : [1000, 3000] }
+    shop_id     : 1000001,
+    location_id : { $in : [1000, 3000] },
+    is_deleted  : false
   });
 
 });
@@ -217,9 +223,10 @@ it ('should auto assign field has permission to filter when only query with oper
   assert.deepEqual(filter, {
     shop_id     : 1000001,
     location_id : { 
-      $ne  : 4000,
+      $ne  : '4000',
       $nin : [1000, 2000],
       $in  : [1000, 3000] 
-    }
+    },
+    is_deleted : false
   });
 });

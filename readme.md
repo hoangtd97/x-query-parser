@@ -21,10 +21,12 @@ Parse query to mongoose filter
       quantity : { type : Number }
     }],
     created_at    : { type : Date },
+    updated_at    : { type : Date },
     status        : { type : String },
     private_field : { type : Number },
     order_number  : { type : String },
     location_id   : { type : Number },
+    is_deleted    : { type : Boolean }
   });
   ```
 
@@ -45,6 +47,9 @@ Parse query to mongoose filter
       page  : 1,
       limit : 20,
       sort  : 'created_at_asc',
+      filter : {
+        is_deleted : false
+      }
     },
     custom : {
       keyword : (value) => { return { $or : [
@@ -62,8 +67,10 @@ Parse query to mongoose filter
 
     let query = {
       'shop_id'              : '100000001',
-      'created_at_gte'       : '2019-04-01',
-      'created_at_lte'       : '2019-04-30',
+      'created_at_gte'       : '2019-04-01T03:15:00.000Z',
+      'created_at_lte'       : '2019-04-30T03:15:00.000Z',
+      'updated_at_from_date' : '2019-04-01T03:15:00.000Z',
+      'updated_at_to_date'   : '2019-04-30T03:15:00.000Z',
       'customer.name_like'   : 'hoang',
       'barcode'              : 'HEO',
       'status_in'            : 'NEW,ASSIGN_EMPLOYEE',
@@ -81,8 +88,12 @@ Parse query to mongoose filter
     let expectedFilter = {
       'shop_id' : 100000001,
       'created_at' : { 
-        $gte : '2019-04-01',
-        $lte : '2019-04-30'
+        $gte : '2019-04-01T03:15:00.000Z',
+        $lte : '2019-04-30T03:15:00.000Z'
+      },
+      'updated_at' : {
+        $gte : new Date(new Date('2019-04-01T03:15:00.000Z').setHours(0, 0, 0, 0)),
+        $lte : new Date(new Date('2019-04-30T03:15:00.000Z').setHours(23, 59, 59, 999))
       },
       'customer.name'      : new RegExp('hoang', 'gi'),
       'line_items.barcode' : 'HEO',
@@ -92,6 +103,7 @@ Parse query to mongoose filter
         { 'order_number'   : new RegExp('0968726159', 'gi') },
         { 'customer.phone' : new RegExp('0968726159', 'gi') }
       ],
+      'is_deleted'         : false
     };
 
     assert.equal(errors, null);
@@ -200,7 +212,7 @@ Parse query to mongoose filter
   it ('should auto assign field has permission to filter that not exists in query', () => {
 
     let query = {
-      shop_id        : 1000001
+      shop_id : 1000001
     };
 
     let { errors, filter } = parse(query, { 
@@ -210,8 +222,9 @@ Parse query to mongoose filter
     });
 
     assert.deepEqual(filter, {
-      shop_id : 1000001,
-      location_id : { $in : [1000, 3000] }
+      shop_id     : 1000001,
+      location_id : { $in : [1000, 3000] },
+      is_deleted  : false
     });
 
   });
