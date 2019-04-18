@@ -19,19 +19,19 @@ const common_operators = [
     key          : 'ne',
     query_key    : '_ne',
     applyOnTypes : ['*'],
-    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $ne : type(value) } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $ne : value } })
   },
   {
     key          : 'gt',
     query_key    : '_gt',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $gt : type(value) } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $gt : value } })
   },
   {
     key          : 'gte',
     query_key    : '_gte',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $gte : type(value) } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $gte : value } })
   },
   {
     key          : 'from_date',
@@ -47,13 +47,13 @@ const common_operators = [
     key          : 'lt',
     query_key    : '_lt',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $lt : type(value) } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $lt : value } })
   },
   {
     key          : 'lte',
     query_key    : '_lte',
     applyOnTypes : [Number, Date],
-    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $lte : type(value) } })
+    setter       : ({ it, field, value, type }) =>  set({ it, field, type, assign : { $lte : value } })
   },
   {
     key          : 'to_date',

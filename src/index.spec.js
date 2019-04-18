@@ -72,8 +72,8 @@ it ('should parse query to mongoose filter successfully', () => {
   let expectedFilter = {
     'shop_id' : 100000001,
     'created_at' : { 
-      $gte : Date('2019-04-01T03:15:00.000Z'),
-      $lte : Date('2019-04-30T03:15:00.000Z')
+      $gte : '2019-04-01T03:15:00.000Z',
+      $lte : '2019-04-30T03:15:00.000Z'
     },
     'updated_at' : {
       $gte : new Date(new Date('2019-04-01T03:15:00.000Z').setHours(0, 0, 0, 0)),
