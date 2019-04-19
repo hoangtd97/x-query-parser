@@ -57,9 +57,9 @@ function set({ it, field, value, assign, type }) {
 }
 
 function isAvailableField({ field, it }) {
-  if ((isAll(it.blackList) || (it.blackList.length > 0 && it.blackList.includes(field))) 
-    || (!isAll(it.whiteList) && !it.whiteList.includes(field))) {
+  let fields = field.split('.');
 
+  if (hasVal(it.blackList, field) || !(hasVal(it.whiteList, field) || hasVal(it.whiteList, fields[0]))) {
     it.errors.push({
       code    : 'ERR_UNAVAILABLE_FIELD',
       field   : field,
