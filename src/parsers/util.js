@@ -57,8 +57,8 @@ function set({ it, field, value, assign, type }) {
 }
 
 function isAvailableField({ field, it }) {
-  if ((it.blackList.length > 0 && it.blackList.includes(field)) 
-    || (it.whiteList.length > 0 && !it.whiteList.includes(field))) {
+  if ((isAll(it.blackList) || (it.blackList.length > 0 && it.blackList.includes(field))) 
+    || (!isAll(it.whiteList) && !it.whiteList.includes(field))) {
 
     it.errors.push({
       code    : 'ERR_UNAVAILABLE_FIELD',
@@ -84,4 +84,12 @@ function checkSchemaField({ schema, field }) {
   return [false];
 }
 
-module.exports = { type_names, set, hasPermission, isAvailableField, checkSchemaField };
+function isAll(list) {
+  return Array.isArray(list) && list.length === 1 && list[0] === '*';
+}
+
+function hasVal(list, val) {
+  return isAll(list) || Array.isArray(list) && list.includes(val);
+}
+
+module.exports = { type_names, set, hasPermission, isAvailableField, checkSchemaField, isAll, hasVal };

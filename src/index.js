@@ -4,7 +4,7 @@ const _cloneDeep = require('lodash.clonedeep');
 
 const { Parsers : DEFAULT_PARSERS, util } = require('./parsers');
 
-const { set } = util;
+const { set, isAll } = util;
 
 function Parser({ schema, required = [], blackList = [], whiteList = [], defaults, custom = {}, alias = [] }) {
   if (typeof schema.obj === 'object') {
@@ -67,12 +67,42 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
         it.skip = (it.page - 1) * it.limit;
       }
 
-      if (it.blackList.length > 0) {
-        if (typeof it.fields !== 'object') {
-          it.fields = {};
+      // ------------ Fields -------------
+      if (typeof it.fields !== 'object') {
+        it.fields = {};
+      }
+
+      if (!isAll(it.whiteList)) {
+        for (let field of it.whiteList) {
+          if (it.fields[field] === undefined) {
+            it.fields[field] = 1;
+          }
         }
+      }
+
+      if (it.blackList.length > 0) {
         for (let field of it.blackList) {
-          it.fields[field] = -1;
+          it.fields[field] = 0;
+        }
+      }
+
+      // remove conflict fields
+      let hasIncludes, hasExcludes;
+
+      for (let field in it.fields) {
+        if (it.fields[field]) {
+          hasIncludes = true;
+        }
+        else {
+          hasExcludes = true;
+        }
+      }
+
+      if (hasIncludes && hasExcludes) {
+        for (let field in it.fields) {
+          if (!it.fields[field]) {
+            delete it.fields[field];
+          }
         }
       }
     }

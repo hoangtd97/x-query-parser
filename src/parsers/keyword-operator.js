@@ -1,6 +1,6 @@
 'use strict';
 
-const { type_names, set, hasPermission, checkSchemaField } = require('./util');
+const { type_names, set, hasPermission, checkSchemaField, isAll } = require('./util');
 
 
 const common_operators = [
@@ -164,7 +164,7 @@ const key_operator_parsers = [
         });
       }
 
-      if (operator.applyOnTypes[0] !== '*' && !operator.applyOnTypes.includes(type)) {
+      if (!isAll(operator.applyOnTypes) && !operator.applyOnTypes.includes(type)) {
         let type_name = type_names.get(type);
         return it.errors.push({
           code     : 'ERR_WRONG_OPERATOR',

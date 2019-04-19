@@ -31,7 +31,7 @@ const parse = Parser({
   schema    : OrderSchema,
   required  : ['shop_id'],
   blackList : ['private_field'],
-  whiteList : [],
+  whiteList : ['*'],
   alias     : {
     barcode : 'line_items.barcode'
   },
@@ -68,7 +68,7 @@ it ('should parse query to mongoose filter successfully', () => {
     'page'                 : '2', 
     'limit'                : '20',
     'sort'                 : 'created_at_asc,id_desc',
-    'fields'               : 'id,line_items,-customer',
+    'fields'               : '-customer',
   };
 
   let { errors, page, filter, fields, skip, limit, sort } = parse(query);
@@ -96,7 +96,7 @@ it ('should parse query to mongoose filter successfully', () => {
 
   assert.equal(errors, null);
   assert.deepEqual(filter, expectedFilter);
-  assert.deepEqual(fields, { id : 1, line_items : 1, customer : -1, private_field : -1 });
+  assert.deepEqual(fields, { private_field : 0, customer : 0 });
   assert.equal(page, 2);
   assert.equal(skip, 20);
   assert.equal(limit, 20);
