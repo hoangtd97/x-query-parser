@@ -43,6 +43,7 @@ const parse = Parser({
       is_deleted : false
     }
   },
+  deniedValues : ['', null, undefined],
   custom : {
     keyword : (value) => { return { $or : [
       { 'order_number'   : new RegExp(value, 'gi') },
@@ -59,6 +60,7 @@ it ('should parse query to mongoose filter successfully', () => {
     'created_at_lte'       : '2019-04-30T03:15:00.000Z',
     'updated_at_from_date' : '2019-04-01T03:15:00.000Z',
     'updated_at_to_date'   : '2019-04-30T03:15:00.000Z',
+    'customer.id'          : '',
     'customer.name_like'   : 'hoang',
     'barcode'              : 'HEO',
     'status_in'            : 'NEW,ASSIGN_EMPLOYEE',

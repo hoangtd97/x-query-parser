@@ -6,7 +6,7 @@ const { Parsers : DEFAULT_PARSERS, util } = require('./parsers');
 
 const { set, isAll } = util;
 
-function Parser({ schema, required = [], blackList = [], whiteList = [], defaults, custom = {}, alias = [] }) {
+function Parser({ schema, required = [], blackList = [], whiteList = [], defaults, custom = {}, alias = [], deniedValues = ['', null, undefined] }) {
   if (typeof schema.obj === 'object') {
     schema = schema.obj;
   }
@@ -33,7 +33,7 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
 
     let errors = [];
 
-    const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias, permission };
+    const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias, permission, deniedValues };
   
     Object.assign(it, { filter : {} }, _cloneDeep(defaults));
   
@@ -73,9 +73,20 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
       }
 
       if (!isAll(it.whiteList)) {
-        for (let field of it.whiteList) {
-          if (it.fields[field] === undefined) {
-            it.fields[field] = 1;
+        let hasIncludes;
+
+        for (let field in it.fields) {
+          if (it.fields[field]) {
+            hasIncludes = true;
+            break;
+          }
+        }
+
+        if (!hasIncludes) {
+          for (let field of it.whiteList) {
+            if (it.fields[field] === undefined) {
+              it.fields[field] = 1;
+            }
           }
         }
       }
@@ -119,7 +130,10 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
 
 function parseIt({ it, parsers = DEFAULT_PARSERS, query}) {
   for (let key in query) {
+
     let value = query[key];
+
+    if (it.deniedValues.includes(value)) { continue }
 
     for (let { matcher, setter } of parsers) {
       if (matcher({ key, value, it })) {
