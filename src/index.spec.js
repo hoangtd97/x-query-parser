@@ -63,7 +63,7 @@ it ('should parse query to mongoose filter successfully', () => {
     'barcode'              : 'HEO',
     'status_in'            : 'NEW,ASSIGN_EMPLOYEE',
     'location_id_in'       : '1000,2000',
-    'keyword'              : '0968726159',
+    'keyword'              : '0969728159',
     // pagination
     'page'                 : '2', 
     'limit'                : '20',
@@ -88,15 +88,15 @@ it ('should parse query to mongoose filter successfully', () => {
     'status'             : { $in : ['NEW', 'ASSIGN_EMPLOYEE'] },
     'location_id'        : { $in : [1000, 2000] },
     '$or' : [
-      { 'order_number'   : new RegExp('0968726159', 'gi') },
-      { 'customer.phone' : new RegExp('0968726159', 'gi') }
+      { 'order_number'   : new RegExp('0969728159', 'gi') },
+      { 'customer.phone' : new RegExp('0969728159', 'gi') }
     ],
     'is_deleted'         : false
   };
 
   assert.equal(errors, null);
   assert.deepEqual(filter, expectedFilter);
-  assert.deepEqual(fields, { id : 1, line_items : 1, customer : -1 });
+  assert.deepEqual(fields, { id : 1, line_items : 1, customer : -1, private_field : -1 });
   assert.equal(page, 2);
   assert.equal(skip, 20);
   assert.equal(limit, 20);
