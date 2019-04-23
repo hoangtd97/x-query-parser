@@ -1,13 +1,45 @@
 'use strict';
 
-const _get = require('lodash.get');
+const _ = {
+  get : require('lodash.get')
+}
 
 const type_names = new Map([
-  [Number , 'number' ],
-  [String , 'string' ],
-  [Boolean, 'boolean'],
-  [Object , 'object' ],
-  [Array  , 'array'  ]
+  [Number   , 'number'  ],
+  [String   , 'string'  ],
+  [Boolean  , 'boolean' ],
+  [Object   , 'object'  ],
+  [Array    , 'array'   ],
+  [Date     , 'date'    ],
+  ['string' , 'string'  ],
+  ['boolean', 'boolean' ],
+  ['long'   , 'long'    ],
+  ['integer', 'integer' ],
+  ['short'  , 'short'   ],
+  ['byte'   , 'byte'    ],
+  ['double' , 'double'  ],
+  ['float'  , 'float'   ],
+  ['date'   , 'date'    ],
+  ['binary' , 'binary'  ],
+]);
+
+const type_caster = new Map([
+  [Number   , Number  ],
+  [String   , String  ],
+  [Boolean  , Boolean ],
+  [Object   , Object  ],
+  [Array    , Array   ],
+  [Date     , Date    ],
+  ['string' , String  ],
+  ['boolean', Boolean ],
+  ['long'   , Number  ],
+  ['integer', Number  ],
+  ['short'  , Number  ],
+  ['byte'   , Number  ],
+  ['double' , Number  ],
+  ['float'  , Number  ],
+  ['date'   , Date    ],
+  ['binary' , Buffer  ],
 ]);
 
 function hasPermission({ it, field, value, values }) {
@@ -35,7 +67,7 @@ function hasPermission({ it, field, value, values }) {
   return true;
 }
 
-function set({ it, field, value, assign, type }) {
+function set({ it, field, value, assign }) {
   if (field) {
     if (isAvailableField({ field, it })) {
       if (value !== undefined) {
@@ -71,14 +103,26 @@ function isAvailableField({ field, it }) {
 };
 
 function checkSchemaField({ schema, field }) {
-  let type = _get(schema, field, _get(schema, field.replace('.', '[0]')));
+  let field_paths = field.split('.');
 
+  let type = _.get(schema, field);
+
+  if (type === undefined && field_paths.length > 0) {
+    if (type === undefined) {
+      type = _.get(schema, field_paths.join('.[0].'));
+    }
+
+    if (type === undefined) {
+      type = _.get(schema, field_paths[0]);
+    }
+  }
+  
   if (typeof type === 'object' && type.type !== undefined) {
     type = type.type;
   }
 
   if (type !== undefined) {
-    return [true, type];
+    return [true, type_names.get(type) || 'unknown', type_caster.get(type) || function (val) { return val }];
   }
 
   return [false];
