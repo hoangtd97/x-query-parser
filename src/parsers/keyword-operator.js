@@ -149,7 +149,7 @@ const key_operator_parsers = [
       }
       let alias;
 
-      if (it.alias[field]) {
+      if (typeof it.alias[field] === 'string') {
         alias = field;
         field = it.alias[field];
       }

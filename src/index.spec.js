@@ -18,13 +18,14 @@ const OrderSchema = new Schema({
     barcode  : { type : String },
     quantity : { type : Number }
   }],
-  created_at    : { type : Date },
-  updated_at    : { type : Date },
-  status        : { type : String },
-  private_field : { type : Number },
-  order_number  : { type : String },
-  location_id   : { type : Number },
-  is_deleted    : { type : Boolean }
+  created_at         : { type : Date },
+  updated_at         : { type : Date },
+  status             : { type : String },
+  private_field      : { type : Number },
+  order_number       : { type : String },
+  location_id        : { type : Number },
+  fulfillment_status : { type : String },
+  is_deleted         : { type : Boolean }
 });
 
 const parse = Parser({
@@ -36,12 +37,10 @@ const parse = Parser({
     barcode : 'line_items.barcode'
   },
   defaults  : {
-    page  : 1,
-    limit : 20,
-    sort  : 'created_at_asc',
-    filter : {
-      is_deleted : false
-    }
+    page       : 1,
+    limit      : 20,
+    sort       : 'created_at_asc',
+    is_deleted : false
   },
   deniedValues : ['', null, undefined],
   custom : {

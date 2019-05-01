@@ -2,11 +2,25 @@
 
 const _cloneDeep = require('lodash.clonedeep');
 
+const ERR_INVALID_QUERY = require('./err-invalid-query');
+
 const { Parsers : DEFAULT_PARSERS, util } = require('./parsers');
 
 const { set, isAll } = util;
 
-function Parser({ schema, required = [], blackList = [], whiteList = [], defaults, custom = {}, alias = [], deniedValues = ['', null, undefined] }) {
+function Parser({ 
+  schema,
+  model        = '',
+  required     = [],
+  blackList    = [],
+  whiteList    = [],
+  defaults,
+  custom       = {},
+  alias        = {},
+  deniedValues = ['', null, undefined],
+  throwError   = false
+}) {
+
   if (typeof schema.obj === 'object') {
     schema = schema.obj;
   }
@@ -34,8 +48,10 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
     let errors = [];
 
     const it = { errors, schema, required, blackList, whiteList, defaults, custom, alias, permission, deniedValues };
-  
-    Object.assign(it, { filter : {} }, _cloneDeep(defaults));
+    
+    query = Object.assign({}, defaults, query);
+
+    it.filter = {};
   
     parseIt({ parsers, it, query });
 
@@ -120,7 +136,13 @@ function Parser({ schema, required = [], blackList = [], whiteList = [], default
 
     // console.log('time : ', Date.now() - started_at);
 
-    if (it.errors.length <= 0) {
+    if (it.errors.length > 0) {
+      it.queryDSL = 'INVALID_QUERY';
+      if (throwError) {
+        throw new ERR_INVALID_QUERY({ errors : it.errors, model });
+      }
+    }
+    else {
       it.errors = null;
     }
 
@@ -144,4 +166,4 @@ function parseIt({ it, parsers = DEFAULT_PARSERS, query}) {
   }
 }
 
-module.exports = { Parser };
+module.exports = { Parser, ERR_INVALID_QUERY };
